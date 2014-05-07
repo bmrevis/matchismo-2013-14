@@ -12,14 +12,18 @@
 
 @interface CardGameViewController : UIViewController
 
+@property (weak, nonatomic) IBOutlet UIView *gridView;
+@property (nonatomic) NSUInteger numberOfStartingCards;
+@property (nonatomic) CGSize maxCardSize;
+
 // protected
 // for subclasses
 - (Deck *)createDeck; // abstract
 
-- (NSAttributedString *)titleForCard:(Card *)card;
-- (UIImage *)backgroundImageForCard:(Card *)card;
 - (void)updateUI;
 
-@property (strong, nonatomic) NSMutableArray *flipHistory; // of NSStrings
+- (UIView *)createViewForCard:(Card *)card;
+- (void)updateView:(UIView *)view forCard:(Card *)card;
+- (void)touchCard:(UITapGestureRecognizer *)gesture;
 
 @end

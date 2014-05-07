@@ -8,23 +8,44 @@
 
 #import "CardGameViewController.h"
 #import "CardMatchingGame.h"
+#import "Grid.h"
+
 
 @interface CardGameViewController ()
 
 @property (nonatomic, strong) CardMatchingGame *game;
-@property (strong, nonatomic) IBOutletCollection(UIButton) NSArray *cardButtons;
 @property (weak, nonatomic) IBOutlet UILabel *scoreLabel;
+@property (strong, nonatomic) NSMutableArray *cardViews;
+@property (strong, nonatomic) Grid *grid;
 
 @end
 
 @implementation CardGameViewController
 
 
+- (Grid *)grid
+{
+    if (!_grid) {
+        _grid = [[Grid alloc] init];
+        _grid.cellAspectRatio = self.maxCardSize.width / self.maxCardSize.height;
+        _grid.minimumNumberOfCells = self.numberOfStartingCards;
+        _grid.maxCellWidth = self.maxCardSize.width;
+        _grid.maxCellHeight = self.maxCardSize.height;
+        _grid.size = self.gridView.frame.size;
+    }
+    return _grid;
+}
+
+- (NSMutableArray *)cardViews
+{
+    if (!_cardViews) _cardViews = [NSMutableArray arrayWithCapacity:self.numberOfStartingCards];
+    return _cardViews;
+}
 
 - (CardMatchingGame *)game
 {
     if (!_game) {
-        _game = [[CardMatchingGame alloc] initWithCardCount:[self.cardButtons count]
+        _game = [[CardMatchingGame alloc] initWithCardCount:self.numberOfStartingCards
                                                   usingDeck:[self createDeck]];
     }
     return _game;
@@ -37,44 +58,66 @@
     
 - (IBAction)touchDealButton:(UIButton *)sender {
     self.game = nil;
-    self.flipHistory = nil;
+    self.cardViews = nil;
     [self updateUI];
 }
 
-
-
-- (IBAction)touchCardButton:(UIButton *)sender
-{
-    int cardIndex = [self.cardButtons indexOfObject:sender];
-    [self.game chooseCardAtIndex:cardIndex];
-    [self updateUI];
-}
+#define CARDSPACINGINPERCENT 0.08
 
 - (void)updateUI
 {
-    for (UIButton *cardButton in self.cardButtons) {
-        int cardIndex = [self.cardButtons indexOfObject:cardButton];
+    for (NSUInteger cardIndex = 0;
+         cardIndex < self.game.numberOfDealtCards;
+         cardIndex++) {
         Card *card = [self.game cardAtIndex:cardIndex];
-        [cardButton setAttributedTitle:[self titleForCard:card]
-                              forState:UIControlStateNormal];
-        [cardButton setBackgroundImage:[self backgroundImageForCard:card]
-                              forState:UIControlStateNormal];
-        cardButton.enabled = !card.matched;
+        NSUInteger viewIndex = [self.cardViews indexOfObjectPassingTest:^BOOL(id obj, NSUInteger idx, BOOL *stop) {
+            if ([obj isKindOfClass:[UIView class]]) {
+                if (((UIView *)obj).tag == cardIndex) return YES;
+            }
+            return NO;
+        }];
+        UIView *cardView;
+        if (viewIndex == NSNotFound) {
+            cardView = [self createViewForCard:card];
+            cardView.tag = cardIndex;
+            UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self
+                                                                                  action:@selector(touchCard:)];
+            [cardView addGestureRecognizer:tap];
+            [self.cardViews addObject:cardView];
+            viewIndex = [self.cardViews indexOfObject:cardView];
+            [self.gridView addSubview:cardView];
+        } else {
+            cardView = self.cardViews[viewIndex];
+            [self updateView:cardView forCard:card];
+            cardView.alpha = card.matched ? 0.6 : 1.0;
+        }
+        CGRect frame = [self.grid frameOfCellAtRow:viewIndex / self.grid.columnCount
+                                          inColumn:viewIndex % self.grid.columnCount];
+        frame = CGRectInset(frame, frame.size.width * CARDSPACINGINPERCENT, frame.size.height * CARDSPACINGINPERCENT);
+        cardView.frame = frame;
     }
+    
     self.scoreLabel.text = [NSString stringWithFormat:@"Score: %d", self.game.score];
     
 }
 
-- (NSAttributedString *)titleForCard:(Card *)card
+- (UIView *)createViewForCard:(Card *)card
 {
-    NSAttributedString *title = [[NSAttributedString alloc] initWithString:card.chosen ? card.contents : @""];
-    return title;
+    UIView *view = [[UIView alloc] init];
+    [self updateView:view forCard:card];
+    return view;
 }
 
-- (UIImage *)backgroundImageForCard:(Card *)card
+- (void)updateView:(UIView *)view forCard:(Card *)card
 {
-    return [UIImage imageNamed:card.chosen ? @"cardfront" : @"cardback"];
+    view.backgroundColor = [UIColor blueColor];
 }
 
-
+- (void)touchCard:(UITapGestureRecognizer *)gesture
+{
+    if (gesture.state == UIGestureRecognizerStateEnded) {
+        [self.game chooseCardAtIndex:gesture.view.tag];
+        [self updateUI];
+    }
+}
 @end
