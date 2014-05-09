@@ -18,6 +18,8 @@
 @property (strong, nonatomic) NSMutableArray *cardViews;
 @property (strong, nonatomic) Grid *grid;
 @property (weak, nonatomic) IBOutlet UIButton *addCardsButton;
+@property (strong, nonatomic) UIDynamicAnimator *pileAnimator;
+
 
 @end
 
@@ -74,6 +76,7 @@
     self.grid = nil;
     self.addCardsButton.enabled = YES;
     self.addCardsButton.alpha = 1.0;
+    self.pileAnimator = nil;
     [self updateUI];
 }
 - (IBAction)touchAddCardsButton:(UIButton *)sender {
@@ -84,10 +87,63 @@
         sender.enabled = NO;
         sender.alpha = 0.5;
     }
+    self.pileAnimator = nil;
     [self updateUI];
 }
 
+#define RESISTANCE_TO_PILING 40.0
+- (IBAction)gatherCardsIntoPile:(UIPinchGestureRecognizer *)gesture
+{
+    if ((gesture.state == UIGestureRecognizerStateChanged) ||
+        (gesture.state == UIGestureRecognizerStateEnded)) {
+        if (!self.pileAnimator) {
+            CGPoint center = [gesture locationInView:self.gridView];
+            self.pileAnimator = [[UIDynamicAnimator alloc] initWithReferenceView:self.gridView];
+            UIDynamicItemBehavior *item = [[UIDynamicItemBehavior alloc] initWithItems:self.cardViews];
+            item.resistance = RESISTANCE_TO_PILING;
+            [self.pileAnimator addBehavior:item];
+            for (UIView *cardView in self.cardViews) {
+                UISnapBehavior *snap = [[UISnapBehavior alloc] initWithItem:cardView snapToPoint:center];
+                [self.pileAnimator addBehavior:snap];
+            }
+        }
+    }
+}
 
+- (IBAction)panPile:(UIPanGestureRecognizer *)gesture
+{
+    if (self.pileAnimator) {
+        CGPoint gesturePoint = [gesture locationInView:self.gridView];
+        if (gesture.state == UIGestureRecognizerStateBegan) {
+            for (UIView *cardView in self.cardViews) {
+                UIAttachmentBehavior *attachment = [[UIAttachmentBehavior alloc] initWithItem:cardView
+                                                                             attachedToAnchor:gesturePoint];
+                [self.pileAnimator addBehavior:attachment];
+            }
+            for (UIDynamicBehavior *behaviour in self.pileAnimator.behaviors) {
+                if ([behaviour isKindOfClass:[UISnapBehavior class]]) {
+                    [self.pileAnimator removeBehavior:behaviour];
+                }
+            }
+        } else if (gesture.state == UIGestureRecognizerStateChanged) {
+            for (UIDynamicBehavior *behaviour in self.pileAnimator.behaviors) {
+                if ([behaviour isKindOfClass:[UIAttachmentBehavior class]]) {
+                    ((UIAttachmentBehavior *)behaviour).anchorPoint = gesturePoint;
+                }
+            }
+        } else if (gesture.state == UIGestureRecognizerStateEnded) {
+            for (UIDynamicBehavior *behaviour in self.pileAnimator.behaviors) {
+                if ([behaviour isKindOfClass:[UIAttachmentBehavior class]]) {
+                    [self.pileAnimator removeBehavior:behaviour];
+                }
+            }
+            for (UIView *cardView in self.cardViews) {
+                UISnapBehavior *snap = [[UISnapBehavior alloc] initWithItem:cardView snapToPoint:gesturePoint];
+                [self.pileAnimator addBehavior:snap];
+            }
+        }
+    }
+}
 
 #define CARDSPACINGINPERCENT 0.08
 
@@ -195,7 +251,7 @@
 {
     if (gesture.state == UIGestureRecognizerStateEnded) {
         Card *card = [self.game cardAtIndex:gesture.view.tag];
-        if (!card.matched) {
+        if (!card.matched && !self.pileAnimator) {
         [UIView transitionWithView:gesture.view
                           duration:0.5
                            options:UIViewAnimationOptionTransitionFlipFromLeft animations:^{
@@ -212,6 +268,7 @@
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
 {
     self.grid.size = self.gridView.bounds.size;
+    self.pileAnimator = nil;
     [self updateUI];
 }
 

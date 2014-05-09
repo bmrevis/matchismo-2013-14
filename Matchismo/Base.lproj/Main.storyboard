@@ -46,6 +46,11 @@
                                 <rect key="frame" x="0.0" y="20" width="320" height="361"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" red="0.25098040699958801" green="0.50196081399917603" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <gestureRecognizers/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="BCL-Zn-SoF" appends="YES" id="A1m-dm-1eH"/>
+                                    <outletCollection property="gestureRecognizers" destination="TGz-aJ-Fd8" appends="YES" id="Kbi-Sz-3KG"/>
+                                </connections>
                             </view>
                         </subviews>
                         <color key="backgroundColor" red="0.0" green="0.50196081399917603" blue="0.25098040699958801" alpha="1" colorSpace="calibratedRGB"/>
@@ -74,6 +79,16 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
+                <pinchGestureRecognizer id="BCL-Zn-SoF">
+                    <connections>
+                        <action selector="gatherCardsIntoPile:" destination="vXZ-lx-hvc" id="xl5-75-55s"/>
+                    </connections>
+                </pinchGestureRecognizer>
+                <panGestureRecognizer minimumNumberOfTouches="1" id="TGz-aJ-Fd8">
+                    <connections>
+                        <action selector="panPile:" destination="vXZ-lx-hvc" id="HeG-7O-ZP6"/>
+                    </connections>
+                </panGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="1100" y="53"/>
         </scene>
@@ -143,6 +158,11 @@
                                 <rect key="frame" x="0.0" y="20" width="320" height="361"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" red="0.25098040700000002" green="0.50196081400000003" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <gestureRecognizers/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="uqj-9d-QOo" appends="YES" id="iFC-KE-JZY"/>
+                                    <outletCollection property="gestureRecognizers" destination="GdD-rt-2xg" appends="YES" id="NWd-GY-QN4"/>
+                                </connections>
                             </view>
                             <button opaque="NO" tag="3" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bsd-uK-fQn">
                                 <rect key="frame" x="212" y="389" width="30" height="30"/>
@@ -186,6 +206,16 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="w73-W4-aTF" sceneMemberID="firstResponder"/>
+                <pinchGestureRecognizer id="uqj-9d-QOo">
+                    <connections>
+                        <action selector="gatherCardsIntoPile:" destination="qym-hW-87s" id="tQB-Ly-NbE"/>
+                    </connections>
+                </pinchGestureRecognizer>
+                <panGestureRecognizer minimumNumberOfTouches="1" id="GdD-rt-2xg">
+                    <connections>
+                        <action selector="panPile:" destination="qym-hW-87s" id="1N4-nv-5L7"/>
+                    </connections>
+                </panGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="1100" y="653"/>
         </scene>
