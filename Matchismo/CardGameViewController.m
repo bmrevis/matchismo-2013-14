@@ -100,6 +100,11 @@
             if (!card.matched) {
                 cardView = [self createViewForCard:card];
                 cardView.tag = cardIndex;
+                cardView.frame = CGRectMake(self.gridView.bounds.size.width,
+                                            self.gridView.bounds.size.height,
+                                            self.grid.cellSize.width,
+                                            self.grid.cellSize.height);
+                
                 UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self
                                                                                       action:@selector(touchCard:)];
                 [cardView addGestureRecognizer:tap];
@@ -112,21 +117,58 @@
             if (!card.matched) {
                 [self updateView:cardView forCard:card];
             } else {
+                if (self.removeMatchingCards) {
+                
                 [cardView removeFromSuperview];
                 [self.cardViews removeObject:cardView];
+                    [UIView animateWithDuration:1.0
+                                     animations:^{
+                                         cardView.frame = CGRectMake(0.0,
+                                                                     self.gridView.bounds.size.height,
+                                                                     self.grid.cellSize.width,
+                                                                     self.grid.cellSize.height);
+                                         
+                                     } completion:^(BOOL finished) {
+                                         [cardView removeFromSuperview];
+                                     }];
+                    
+                } else {
+                    cardView.alpha = card.matched ? 0.6 : 1.0;
+                }
             }
         }
+        
+        
         self.grid.minimumNumberOfCells = [self.cardViews count];
+        NSUInteger changedViews = 0;
         for (NSUInteger viewIndex = 0; viewIndex < [self.cardViews count]; viewIndex++) {
             CGRect frame = [self.grid frameOfCellAtRow:viewIndex / self.grid.columnCount
                                               inColumn:viewIndex % self.grid.columnCount];
             frame = CGRectInset(frame, frame.size.width * CARDSPACINGINPERCENT, frame.size.height * CARDSPACINGINPERCENT);
-            ((UIView *)self.cardViews[viewIndex]).frame = frame;
+            UIView *cardView = (UIView *)self.cardViews[viewIndex];
+            if (![self frame:frame equalToFrame:cardView.frame]) {
+                [UIView animateWithDuration:0.5
+                                      delay:1.5 * changedViews++ / [self.cardViews count]
+                                    options:UIViewAnimationOptionCurveEaseInOut
+                                 animations:^{
+                                     cardView.frame = frame;
+                                 } completion:NULL];
+            }
         }
     }
     
     self.scoreLabel.text = [NSString stringWithFormat:@"Score: %d", self.game.score];
     
+}
+
+#define FRAMEROUNDINGERROR 0.01
+- (BOOL)frame:(CGRect)frame1 equalToFrame:(CGRect)frame2
+{
+    if (fabs(frame1.size.width - frame2.size.width) > FRAMEROUNDINGERROR) return NO;
+    if (fabs(frame1.size.height - frame2.size.height) > FRAMEROUNDINGERROR) return NO;
+    if (fabs(frame1.origin.x - frame2.origin.x) > FRAMEROUNDINGERROR) return NO;
+    if (fabs(frame1.origin.y - frame2.origin.y) > FRAMEROUNDINGERROR) return NO;
+    return YES;
 }
 
 - (UIView *)createViewForCard:(Card *)card
@@ -145,6 +187,7 @@
 {
     if (gesture.state == UIGestureRecognizerStateEnded) {
         Card *card = [self.game cardAtIndex:gesture.view.tag];
+        if (!card.matched) {
         [UIView transitionWithView:gesture.view
                           duration:0.5
                            options:UIViewAnimationOptionTransitionFlipFromLeft animations:^{
@@ -155,6 +198,7 @@
                                [self.game chooseCardAtIndex:gesture.view.tag];
                                [self updateUI];
                            }];
+        }
     }
 }
 
