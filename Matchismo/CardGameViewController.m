@@ -60,7 +60,15 @@
 - (IBAction)touchDealButton:(UIButton *)sender {
     self.game = nil;
     for (UIView *subView in self.cardViews) {
-        [subView removeFromSuperview];
+        [UIView animateWithDuration:0.5
+                         animations:^{
+                             subView.frame = CGRectMake(0.0,
+                                                        self.gridView.bounds.size.height,
+                                                        self.grid.cellSize.width,
+                                                        self.grid.cellSize.height);
+                         } completion:^(BOOL finished) {
+                             [subView removeFromSuperview];
+                         }];
     }
     self.cardViews = nil;
     self.grid = nil;
