@@ -16,6 +16,8 @@
 @property (nonatomic) NSUInteger numberOfStartingCards;
 @property (nonatomic) CGSize maxCardSize;
 
+
+
 // protected
 // for subclasses
 - (Deck *)createDeck; // abstract
@@ -25,5 +27,7 @@
 - (UIView *)createViewForCard:(Card *)card;
 - (void)updateView:(UIView *)view forCard:(Card *)card;
 - (void)touchCard:(UITapGestureRecognizer *)gesture;
+
+
 
 @end

@@ -18,12 +18,14 @@
 - (void)chooseCardAtIndex:(NSUInteger)index;
 - (Card *)cardAtIndex:(NSUInteger)index;
 
+- (void)drawNewCard;
+
 @property (nonatomic, readonly) NSInteger score;
 @property (nonatomic) NSUInteger maxMatchingCards;
 @property (nonatomic, readonly) NSArray *lastChosenCards;
 @property (nonatomic, readonly) NSInteger lastScore;
 
 @property (nonatomic, readonly) NSUInteger numberOfDealtCards;
-
+@property (nonatomic, readonly) BOOL deckIsEmpty;
 
 @end

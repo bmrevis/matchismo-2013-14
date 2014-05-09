@@ -17,6 +17,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *scoreLabel;
 @property (strong, nonatomic) NSMutableArray *cardViews;
 @property (strong, nonatomic) Grid *grid;
+@property (weak, nonatomic) IBOutlet UIButton *addCardsButton;
 
 @end
 
@@ -58,9 +59,27 @@
     
 - (IBAction)touchDealButton:(UIButton *)sender {
     self.game = nil;
+    for (UIView *subView in self.cardViews) {
+        [subView removeFromSuperview];
+    }
     self.cardViews = nil;
+    self.grid = nil;
+    self.addCardsButton.enabled = YES;
+    self.addCardsButton.alpha = 1.0;
     [self updateUI];
 }
+- (IBAction)touchAddCardsButton:(UIButton *)sender {
+    for (int i = 0; i < sender.tag; i++) {
+        [self.game drawNewCard];
+    }
+    if (self.game.deckIsEmpty) {
+        sender.enabled = NO;
+        sender.alpha = 0.5;
+    }
+    [self updateUI];
+}
+
+
 
 #define CARDSPACINGINPERCENT 0.08
 
@@ -97,10 +116,13 @@
                 [self.cardViews removeObject:cardView];
             }
         }
-        CGRect frame = [self.grid frameOfCellAtRow:viewIndex / self.grid.columnCount
-                                          inColumn:viewIndex % self.grid.columnCount];
-        frame = CGRectInset(frame, frame.size.width * CARDSPACINGINPERCENT, frame.size.height * CARDSPACINGINPERCENT);
-        cardView.frame = frame;
+        self.grid.minimumNumberOfCells = [self.cardViews count];
+        for (NSUInteger viewIndex = 0; viewIndex < [self.cardViews count]; viewIndex++) {
+            CGRect frame = [self.grid frameOfCellAtRow:viewIndex / self.grid.columnCount
+                                              inColumn:viewIndex % self.grid.columnCount];
+            frame = CGRectInset(frame, frame.size.width * CARDSPACINGINPERCENT, frame.size.height * CARDSPACINGINPERCENT);
+            ((UIView *)self.cardViews[viewIndex]).frame = frame;
+        }
     }
     
     self.scoreLabel.text = [NSString stringWithFormat:@"Score: %d", self.game.score];
@@ -126,4 +148,6 @@
         [self updateUI];
     }
 }
+
+
 @end
